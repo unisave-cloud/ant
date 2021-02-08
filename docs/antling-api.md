@@ -25,7 +25,7 @@ Executes a job in a standalone container.
             {"path": "...", "content": "..."}
         ]
     },
-    "result": [
+    "results": [
         "/app/result.txt",
         "/app/something.dat"
     ],
@@ -44,7 +44,7 @@ Executes a job in a standalone container.
 ```json
 {
     "exitCode": 0,
-    "result": {
+    "results": {
         "/app/result.txt": "[file contents]",
         "/app/something.dat": "[file contents]",
         "/app/non-existing.txt": null

@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Antling.Common;
+using Antling.Docker;
+using Antling.Jobs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -26,6 +30,19 @@ namespace Antling
         // Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            IDocker docker = new DockerViaBash();
+            
+            IImageBuilder imageBuilder = new ImageBuilder(docker);
+            imageBuilder.Initialize();
+            
+            JobRunner jobRunner = new JobRunner(docker, imageBuilder);
+
+            services.AddSingleton<IDocker>(docker);
+            services.AddSingleton<IImageBuilder>(imageBuilder);
+            services.AddSingleton<JobRunner>(jobRunner);
+            
+            // TODO: remove old docker images and containers on startup and disposal
+            
             services.AddControllers();
         }
 
@@ -33,6 +50,8 @@ namespace Antling
         // Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            UpdateWorkingDirectory();
+            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -45,6 +64,16 @@ namespace Antling
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+        }
+
+        private void UpdateWorkingDirectory()
+        {
+            Directory.SetCurrentDirectory(
+                Path.Combine(
+                    Environment.CurrentDirectory,
+                    Configuration["WorkingDirectory"] ?? "./"
+                )
+            );
         }
     }
 }
